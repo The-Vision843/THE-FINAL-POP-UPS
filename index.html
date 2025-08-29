@@ -1,7 +1,3 @@
-New try
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,9 +13,11 @@ New try
       background: #f0f0f0;
     }
     #stopBtn {
-      padding: 10px 20px;
-      font-size: 18px;
+      padding: 12px 24px;
+      font-size: 20px;
       cursor: pointer;
+      z-index: 10;
+      position: relative;
     }
   </style>
 </head>
@@ -35,17 +33,32 @@ New try
     const popupHeight = 200;
     const targetUrl = 'https://the-vision843.github.io/Chaos-site-Tarald---Test./';
 
+    function getAvoidZone() {
+      const stopBtn = document.getElementById('stopBtn');
+      const stopRect = stopBtn.getBoundingClientRect();
+
+      return {
+        x: window.screenX + stopRect.left,
+        y: window.screenY + stopRect.top,
+        width: stopRect.width,
+        height: stopRect.height
+      };
+    }
+
+    function isInsideAvoidZone(x, y, zone) {
+      return (
+        x < zone.x + zone.width &&
+        x + popupWidth > zone.x &&
+        y < zone.y + zone.height &&
+        y + popupHeight > zone.y
+      );
+    }
+
     function openTabs(count = 50) {
       const screenWidth = window.screen.availWidth;
       const screenHeight = window.screen.availHeight;
 
-      const stopBtn = document.getElementById('stopBtn');
-      const stopRect = stopBtn.getBoundingClientRect();
-
-      const avoidX = window.screenX + stopRect.left;
-      const avoidY = window.screenY + stopRect.top;
-      const avoidWidth = stopRect.width;
-      const avoidHeight = stopRect.height;
+      const avoidZone = getAvoidZone();
 
       for (let i = 0; i < count; i++) {
         let x, y;
@@ -55,12 +68,7 @@ New try
           y = Math.floor(Math.random() * (screenHeight - popupHeight));
           tries++;
           if (tries > 100) break;
-        } while (
-          x >= avoidX &&
-          x <= avoidX + avoidWidth &&
-          y >= avoidY &&
-          y <= avoidY + avoidHeight
-        );
+        } while (isInsideAvoidZone(x + window.screenX, y + window.screenY, avoidZone));
 
         const popup = window.open(
           targetUrl,
@@ -87,12 +95,10 @@ New try
               if (x <= 0 || x >= screenWidth - popupWidth) dx *= -1;
               if (y <= 0 || y >= screenHeight - popupHeight) dy *= -1;
 
-              if (
-                x >= avoidX &&
-                x <= avoidX + avoidWidth &&
-                y >= avoidY &&
-                y <= avoidY + avoidHeight
-              ) {
+              const screenXPos = x + window.screenX;
+              const screenYPos = y + window.screenY;
+
+              if (isInsideAvoidZone(screenXPos, screenYPos, avoidZone)) {
                 dx *= -1;
                 dy *= -1;
                 x += dx * 2;
@@ -146,5 +152,3 @@ New try
   </script>
 </body>
 </html>
-
-
